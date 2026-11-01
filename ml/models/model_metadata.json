@@ -1,0 +1,52 @@
+{
+  "model_version": "rf_v1.0",
+  "algorithm": "RandomForestClassifier",
+  "trained_at": "2026-10-29T10:20:40.370530+00:00",
+  "train_samples": 3372,
+  "test_samples": 843,
+  "accuracy": 1.0,
+  "precision": 1.0,
+  "recall": 1.0,
+  "f1_score": 1.0,
+  "roc_auc": 1.0,
+  "confusion_matrix": [
+    [
+      562,
+      0
+    ],
+    [
+      0,
+      281
+    ]
+  ],
+  "feature_importances": {
+    "rpm": 0.18,
+    "cycle_time": 0.13031900716472763,
+    "throughput": 0.14,
+    "utilization": 0.16,
+    "queue_length": 0.0,
+    "vibration": 0.14,
+    "temperature": 0.0030171670520008995,
+    "current": 0.06493546494041713,
+    "demand_rate": 0.005190791793178856,
+    "line_throughput": 0.0,
+    "total_wip": 0.0,
+    "rpm_rolling_mean": 0.09703017216995541,
+    "rpm_rolling_std": 0.04625522445036831,
+    "rpm_trend": 0.003407939387806585,
+    "tp_trend": 0.0,
+    "queue_growth_rate": 0.0,
+    "tp_to_demand_ratio": 0.029844233041545206
+  },
+  "baseline_comparison": {
+    "baseline_accuracy": 1.0,
+    "baseline_f1": 1.0,
+    "rf_f1_improvement": 0.0
+  },
+  "parameters": {
+    "n_estimators": 100,
+    "max_depth": 8,
+    "prediction_horizon_sec": 60,
+    "class_weight": "balanced"
+  }
+}

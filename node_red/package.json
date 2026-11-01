@@ -1,0 +1,10 @@
+{
+  "name": "factorypulse-nodered",
+  "description": "Node-RED Industrial Automation and Bottleneck Flow for FactoryPulse AI",
+  "version": "1.0.0",
+  "dependencies": {
+    "@flowfuse/node-red-dashboard": "^1.18.0",
+    "node-red-contrib-sqlite": "^1.0.3"
+  }
+}
+

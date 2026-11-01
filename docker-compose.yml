@@ -1,0 +1,63 @@
+version: "3.8"
+
+services:
+  # 1. Local MQTT Broker
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: factorypulse-mosquitto
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./config/mosquitto.conf:/mosquitto/config/mosquitto.conf
+    restart: unless-stopped
+
+  # 2. Node-RED Automation Engine
+  nodered:
+    image: nodered/node-red:latest
+    container_name: factorypulse-nodered
+    ports:
+      - "1880:1880"
+    environment:
+      - TZ=UTC
+    volumes:
+      - ./node_red/flows.json:/data/flows.json
+      - ./node_red/settings/settings.js:/data/settings.js
+    depends_on:
+      - mosquitto
+    restart: unless-stopped
+
+  # 3. FactoryPulse AI Internal Backend API
+  api:
+    build: .
+    container_name: factorypulse-api
+    command: uvicorn src.api.routes:api_app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    environment:
+      - MQTT_MODE=local
+      - MQTT_LOCAL_HOST=mosquitto
+      - MQTT_LOCAL_PORT=1883
+    volumes:
+      - .:/app
+    depends_on:
+      - mosquitto
+    restart: unless-stopped
+
+  # 4. FactoryPulse AI Streamlit Dashboard
+  dashboard:
+    build: .
+    container_name: factorypulse-dashboard
+    command: streamlit run dashboard/app.py --server.port=8501 --server.address=0.0.0.0
+    ports:
+      - "8501:8501"
+    environment:
+      - MQTT_MODE=local
+      - MQTT_LOCAL_HOST=mosquitto
+      - MQTT_LOCAL_PORT=1883
+    volumes:
+      - .:/app
+    depends_on:
+      - mosquitto
+      - api
+    restart: unless-stopped
+

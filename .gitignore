@@ -1,0 +1,72 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+.venv/
+env/
+venv/
+ENV/
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+*.swp
+*.swo
+
+# Project Data & Logs
+data/database/*.db-journal
+data/database/*.db-wal
+data/database/*.db-shm
+*.log
+
+# Keep empty database and csv dirs with .gitkeep
+!data/csv/.gitkeep
+!data/database/.gitkeep
+!data/synthetic/.gitkeep
+!ml/models/.gitkeep
+
+# Environment Variables
+.env
+!.env.example
+
+# Node / Node-RED
+node_modules/
+node_red/.config.json
+node_red/.sessions.json
+
+# PlatformIO
+.pio/
+.clangd/
+
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+__pycache__/
+*.pyc
+.DS_Store
+node_modules/
+*.log
+*.pid
+data/database/*.db*
