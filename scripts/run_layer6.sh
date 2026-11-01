@@ -36,7 +36,24 @@ step = sim.step(dt_override=2.0)
 st2 = step['station02']
 
 print(f'  ✓ Measured Hardware RPM: {st2.rpm}')
-print(f'  ✓ Calibrated Throughput: {st2.throughput:.2f} PPM (Expected ~6.5 PPM)')
+
+expected_instant = (
+    config.STATION2_CAPACITY_PER_MIN
+    * 650.0 / config.STATION2_BASE_RPM
+)
+
+expected_smoothed = (
+    0.85 * config.STATION2_CAPACITY_PER_MIN
+    + 0.15 * expected_instant
+)
+
+assert abs(st2.throughput - expected_smoothed) < 0.03, (
+    'Throughput calibration mismatch'
+)
+
+print(f'  ✓ Instantaneous Capacity: {expected_instant:.2f} PPM')
+print(f'  ✓ Smoothed Throughput: {st2.throughput:.2f} PPM')
+
 print(f'  ✓ Resulting Machine Status: {st2.status}')
 print(f'  ✓ Upstream Queue Accumulation: {st2.queue_length} units')
 

@@ -11,6 +11,7 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 import streamlit as st
+from streamlit_autorefresh import st_autorefresh
 
 # Setup page layout
 st.set_page_config(
@@ -80,6 +81,9 @@ def step_simulation():
         # 3. Real-time AI prediction on focal Station 2
         st.session_state.predictor.process_reading(step["station02"].model_dump())
 
+
+if st.session_state.authenticated and st.session_state.sim_running:
+    st_autorefresh(interval=3000, key="factorypulse_live_refresh")
 
 # Execute a step on dashboard refresh
 step_simulation()

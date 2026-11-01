@@ -4,13 +4,16 @@
  */
 
 #include <WiFi.h>
+#include <WiFiClientSecure.h>
+#include <time.h>
+#include "mqtt_ca.h"
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 
 #include "config.h"
 #include "sensors.h"
 
-WiFiClient espClient;
+WiFiClientSecure espClient;
 PubSubClient mqttClient(espClient);
 
 unsigned long lastTelemetryTime = 0;
@@ -96,7 +99,7 @@ void onMqttMessage(char* topic, byte* payload, unsigned int length) {
 }
 
 void reconnectMQTT() {
-    if (WiFi.status() != WL_CONNECTED) return;
+    if (WiFi.status() != WL_CONNECTED || time(nullptr) < 1700000000) return;
 
     while (!mqttClient.connected()) {
         Serial.print("[MQTT] Connecting to broker ");
@@ -176,11 +179,23 @@ void setup() {
     sensors.init();
     setupWiFi();
 
+    if (WiFi.status() == WL_CONNECTED) {
+        configTime(0, 0, "pool.ntp.org", "time.google.com");
+
+        unsigned long start = millis();
+        while (time(nullptr) < 1700000000 &&
+               millis() - start < 15000) {
+            delay(200);
+        }
+    }
+
+    espClient.setCACert(MQTT_ROOT_CA);
+
     mqttClient.setServer(MQTT_BROKER_HOST, MQTT_BROKER_PORT);
     mqttClient.setCallback(onMqttMessage);
 
     // Initial safe speed (nominal)
-    sensors.setMotorSpeed(180, true);
+    sensors.setMotorSpeed(0, true);
 }
 
 void loop() {

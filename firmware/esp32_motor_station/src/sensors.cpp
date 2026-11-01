@@ -40,9 +40,9 @@ void SensorManager::init() {
     digitalWrite(PIN_MOTOR_IN2, LOW);
 
     // Setup PWM channel for motor speed
-    ledcSetup(PWM_CHANNEL, PWM_FREQUENCY, PWM_RESOLUTION);
-    ledcAttachPin(PIN_MOTOR_ENA, PWM_CHANNEL);
-    ledcWrite(PWM_CHANNEL, 0);
+    ledcAttach(PIN_MOTOR_ENA, PWM_FREQUENCY, PWM_RESOLUTION);
+    // PWM channel is assigned automatically
+    ledcWrite(PIN_MOTOR_ENA, 0);
 
     // Indicator LEDs
     pinMode(PIN_LED_GREEN, OUTPUT);
@@ -100,13 +100,13 @@ void SensorManager::setMotorSpeed(uint8_t pwmSpeed, bool forward) {
         digitalWrite(PIN_MOTOR_IN1, LOW);
         digitalWrite(PIN_MOTOR_IN2, HIGH);
     }
-    ledcWrite(PWM_CHANNEL, pwmSpeed);
+    ledcWrite(PIN_MOTOR_ENA, pwmSpeed);
 }
 
 void SensorManager::emergencyStop() {
     digitalWrite(PIN_MOTOR_IN1, LOW);
     digitalWrite(PIN_MOTOR_IN2, LOW);
-    ledcWrite(PWM_CHANNEL, 0);
+    ledcWrite(PIN_MOTOR_ENA, 0);
     setStatusLEDs("STOPPED");
 }
 

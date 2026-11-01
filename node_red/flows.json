@@ -1,0 +1,257 @@
+[
+    {
+        "id": "fp_main",
+        "type": "tab",
+        "label": "FactoryPulse AI Automation"
+    },
+    {
+        "id": "fp_comment",
+        "type": "comment",
+        "z": "fp_main",
+        "name": "Configure MQTT credentials in Node-RED",
+        "x": 0,
+        "y": 0,
+        "wires": []
+    },
+    {
+        "id": "fp_in",
+        "type": "mqtt in",
+        "z": "fp_main",
+        "name": "Station readings",
+        "topic": "factory/+/telemetry",
+        "qos": "1",
+        "datatype": "auto-detect",
+        "broker": "fp_broker",
+        "nl": false,
+        "rap": false,
+        "inputs": 0,
+        "x": 160,
+        "y": 140,
+        "wires": [
+            [
+                "fp_json"
+            ]
+        ]
+    },
+    {
+        "id": "fp_json",
+        "type": "json",
+        "z": "fp_main",
+        "name": "Decode readings",
+        "property": "payload",
+        "action": "obj",
+        "pretty": false,
+        "x": 360,
+        "y": 140,
+        "wires": [
+            [
+                "fp_rules"
+            ]
+        ]
+    },
+    {
+        "id": "fp_rules",
+        "type": "function",
+        "z": "fp_main",
+        "name": "Bottleneck alerts",
+        "func": "\nconst d = msg.payload;\nif (!d || typeof d !== 'object') return null;\n\nconst id = d.station_id;\nconst base = {\n  station01: 1800,\n  station02: 1500,\n  station03: 1200\n}[id];\n\nif (!base) return null;\n\nconst rpm = Number(d.rpm);\nconst queue = Number(d.queue_length);\n\nif (!Number.isFinite(rpm) ||\n    !Number.isFinite(queue)) return null;\n\nlet state = context.get(id) || {count:0, last:0};\nconst abnormal = rpm < base*0.7 || queue >= 15;\n\nstate.count = abnormal ? state.count+1 : 0;\nconst now = Date.now();\n\nif (state.count >= 3 &&\n    (state.last === 0 || now-state.last >= 20000)) {\n  state.last = now;\n  msg.topic = \"factory/alerts\";\n  msg.payload = JSON.stringify({\n    station_id: id,\n    severity: \"WARNING\",\n    message: \"Potential production bottleneck\",\n    rpm: rpm,\n    queue_length: queue,\n    timestamp: new Date(now).toISOString()\n  });\n  context.set(id,state);\n  return msg;\n}\n\ncontext.set(id,state);\nreturn null;\n",
+        "outputs": 1,
+        "x": 580,
+        "y": 140,
+        "wires": [
+            [
+                "fp_debug",
+                "381e033b4449f55b"
+            ]
+        ]
+    },
+    {
+        "id": "fp_debug",
+        "type": "debug",
+        "z": "fp_main",
+        "name": "Alert output",
+        "active": true,
+        "tosidebar": true,
+        "complete": "payload",
+        "targetType": "msg",
+        "x": 850,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "fp_out",
+        "type": "mqtt out",
+        "z": "fp_main",
+        "name": "Publish alert",
+        "topic": "",
+        "qos": "1",
+        "retain": "false",
+        "broker": "fp_broker",
+        "x": 850,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "fp_demo",
+        "type": "inject",
+        "z": "fp_main",
+        "name": "Demo slow motor",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": "",
+        "topic": "",
+        "payload": " {   \"station_id\": \"station02\",   \"rpm\": 750,   \"queue_length\": 18 }",
+        "payloadType": "json",
+        "x": 170,
+        "y": 250,
+        "wires": [
+            [
+                "fp_rules"
+            ]
+        ]
+    },
+    {
+        "id": "fp_prediction",
+        "type": "mqtt in",
+        "z": "fp_main",
+        "name": "ML predictions",
+        "topic": "factory/predictions",
+        "qos": "1",
+        "broker": "fp_broker",
+        "inputs": 0,
+        "x": 160,
+        "y": 350,
+        "wires": [
+            [
+                "fp_prediction_json"
+            ]
+        ]
+    },
+    {
+        "id": "fp_prediction_json",
+        "type": "json",
+        "z": "fp_main",
+        "name": "Decode prediction",
+        "property": "payload",
+        "x": 400,
+        "y": 350,
+        "wires": [
+            [
+                "fp_prediction_debug"
+            ]
+        ]
+    },
+    {
+        "id": "fp_prediction_debug",
+        "type": "debug",
+        "z": "fp_main",
+        "name": "Prediction monitor",
+        "active": true,
+        "tosidebar": true,
+        "complete": "payload",
+        "targetType": "msg",
+        "x": 680,
+        "y": 350,
+        "wires": []
+    },
+    {
+        "id": "381e033b4449f55b",
+        "type": "function",
+        "z": "fp_main",
+        "name": "Format API Alert",
+        "func": "\nlet data = msg.payload;\n\nif (typeof data === \"string\") {\n    try {\n        data = JSON.parse(data);\n    } catch (err) {\n        node.error(\"Invalid alert JSON\", msg);\n        return null;\n    }\n}\n\nconst baseRPM = {\n    station01: 1800,\n    station02: 1500,\n    station03: 1200\n};\n\nif (!data || !baseRPM[data.station_id] ||\n    !Number.isFinite(Number(data.rpm))) {\n    node.warn(\"Invalid station or RPM\");\n    return null;\n}\n\nmsg.headers = {\n    \"Content-Type\": \"application/json\"\n};\n\nmsg.payload = {\n    station_id: data.station_id,\n    severity: data.severity || \"WARNING\",\n    alert_code: \"NODERED_BOTTLENECK\",\n    message: data.message || \"Production bottleneck detected\",\n    measured_value: Number(data.rpm),\n    threshold_value: baseRPM[data.station_id] * 0.7\n};\n\ndelete msg.topic;\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 860,
+        "y": 40,
+        "wires": [
+            [
+                "2ed0299aa9314a18"
+            ]
+        ]
+    },
+    {
+        "id": "2ed0299aa9314a18",
+        "type": "http request",
+        "z": "fp_main",
+        "name": "",
+        "method": "POST",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "http://127.0.0.1:8000/api/alerts",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 1070,
+        "y": 100,
+        "wires": [
+            [
+                "9a6c9d4283de7ecc"
+            ]
+        ]
+    },
+    {
+        "id": "9a6c9d4283de7ecc",
+        "type": "debug",
+        "z": "fp_main",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1280,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "fp_broker",
+        "type": "mqtt-broker",
+        "name": "FactoryPulse HiveMQ",
+        "broker": "1285e2f1b7e14c249b55489e3f2de0e3.s1.eu.hivemq.cloud",
+        "port": "8883",
+        "tls": "fp_tls",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": true,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "fp_tls",
+        "type": "tls-config",
+        "name": "HiveMQ TLS",
+        "verifyservercert": true
+    }
+]

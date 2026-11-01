@@ -6,19 +6,17 @@
 #define CONFIG_H
 
 #include <Arduino.h>
+#include "secrets.h"
 
 // =============================================================================
 // 1. NETWORK & MQTT CONFIGURATION
 // =============================================================================
-#define DEFAULT_WIFI_SSID       "Factory_WiFi_Network"
-#define DEFAULT_WIFI_PASS       "FactorySecure2026"
+
 
 // Set to your local broker IP (e.g. 192.168.1.100) or HiveMQ Cloud host
-#define MQTT_BROKER_HOST        "192.168.1.100"
-#define MQTT_BROKER_PORT        1883
+
 #define MQTT_CLIENT_ID          "esp32_station02_motor"
-#define MQTT_USER               ""
-#define MQTT_PASSWORD           ""
+
 
 // MQTT Topics
 #define TOPIC_TELEMETRY         "factory/station02/telemetry"
@@ -54,7 +52,7 @@
 // =============================================================================
 // 3. PHYSICAL MOTOR & SAMPLING PARAMETERS
 // =============================================================================
-#define IR_PULSES_PER_REV       20      // Number of slots in optical encoder disk
+#define IR_PULSES_PER_REV       1       // Number of slots in optical encoder disk
 #define SAMPLING_INTERVAL_MS    1000    // Telemetry publish interval (1.0 second)
 #define PWM_FREQUENCY           20000   // 20 kHz PWM (silent, smooth DC motor drive)
 #define PWM_CHANNEL             0       // LEDC PWM Channel

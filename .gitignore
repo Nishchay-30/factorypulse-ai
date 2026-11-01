@@ -70,3 +70,21 @@ node_modules/
 *.log
 *.pid
 data/database/*.db*
+
+.env
+
+/firmware/esp32_motor_station/include/secrets.h
+
+**/.pio/
+
+*.bak
+
+# Private configuration
+.env
+firmware/esp32_motor_station/include/secrets.h
+
+# Temporary files
+*.bak
+**/.pio/
+__pycache__/
+.DS_Store

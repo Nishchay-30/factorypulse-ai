@@ -185,3 +185,21 @@ Access the dashboard at `http://localhost:8501`.
 - [College Demonstration Script](file:///Users/nishchayarora30/Desktop/Bottleneck%20prediction/docs/demonstration_guide.md)
 - [Troubleshooting & Diagnostics](file:///Users/nishchayarora30/Desktop/Bottleneck%20prediction/docs/troubleshooting.md)
 
+
+### ESP32 Firmware Configuration
+
+Before building the ESP32 firmware, copy
+`firmware/esp32_motor_station/include/secrets.example.h`
+to `firmware/esp32_motor_station/include/secrets.h`.
+
+Replace the placeholder values with your own Wi-Fi and HiveMQ
+Cloud credentials. Never commit `secrets.h` to GitHub.
+
+### ESP32 Firmware Configuration
+
+Before building the ESP32 firmware, copy
+`firmware/esp32_motor_station/include/secrets.example.h`
+to `firmware/esp32_motor_station/include/secrets.h`.
+
+Replace the placeholder values with your own Wi-Fi and HiveMQ
+Cloud credentials. Never commit `secrets.h` to GitHub.
